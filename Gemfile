@@ -40,6 +40,9 @@ gem "thruster", "0.1.27", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "1.14.0"
 
+# Gem to manipulate geocoding
+gem "geocoder", "1.8.6"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", "1.11.1", platforms: %i[ mri windows ], require: "debug/prelude"
