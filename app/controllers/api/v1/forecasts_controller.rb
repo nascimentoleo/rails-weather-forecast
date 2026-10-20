@@ -1,24 +1,20 @@
 module Api
   module V1
-    class ForecastsController < ActionController::API
-      rescue_from ActionController::ParameterMissing do
-        render_bad_request("Address is required")
+    class ForecastsController < BaseController
+      rescue_from Address::Resolver::NotFoundError do |error|
+        render_error(error.message, :unprocessable_content)
       end
 
-      rescue_from AddressValidator::InvalidAddressError do |error|
-        render_bad_request(error.message)
+      rescue_from Address::Resolver::ServiceError do |error|
+        render_error(error.message, :bad_gateway)
       end
 
       def show
-        AddressValidator.call(params.expect(:address))
+        address = Address.new(full_address: params.expect(:address))
+        address.validate!
+        Address::Resolver.call(address)
 
         head :no_content
-      end
-
-      private
-
-      def render_bad_request(message)
-        render json: { error: message }, status: :bad_request
       end
     end
   end
