@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Api::V1::Forecasts integration", type: :request do
+RSpec.describe "Forecasts API v1 integration", type: :request do
   subject(:get_forecast) { get api_v1_forecast_path, params: params }
 
   let(:address_input) { build(:address_input) }
@@ -152,6 +152,17 @@ RSpec.describe "Api::V1::Forecasts integration", type: :request do
 
       context "because it responds with something that is not JSON" do
         before { open_meteo_stub.to_return(status: 200, body: "<html>Service down</html>") }
+
+        it "responds with bad gateway explaining the failure" do
+          get_forecast
+
+          expect(response).to have_http_status(:bad_gateway)
+          expect(response.parsed_body).to eq("error" => "Could not reach the weather service")
+        end
+      end
+
+      context "because it responds with JSON that is not an object" do
+        before { open_meteo_stub.to_return(status: 200, body: "[]") }
 
         it "responds with bad gateway explaining the failure" do
           get_forecast

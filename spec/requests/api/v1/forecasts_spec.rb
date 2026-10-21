@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Api::V1::Forecasts", type: :request do
+RSpec.describe "Forecasts API v1", type: :request do
   subject(:get_forecast) { get api_v1_forecast_path, params: params }
 
   let(:address_input) { build(:address_input) }

@@ -25,7 +25,10 @@ module OpenMeteo
       response = get(uri)
       raise Error, "Open-Meteo responded with status #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
-      JSON.parse(response.body)
+      body = JSON.parse(response.body)
+      raise Error, "Open-Meteo returned an unexpected response" unless body.is_a?(Hash)
+
+      body
     rescue Timeout::Error => error
       raise TimeoutError, error.message
     rescue SocketError, SystemCallError, IOError, OpenSSL::SSL::SSLError, Net::HTTPBadResponse, Zlib::Error, JSON::ParserError => error
