@@ -5,13 +5,16 @@ class Address
 
     def self.call(address)
       result = Geocoder.search(address.full_address, params: { countrycodes: "us" }).first
-      address.zip = result&.postal_code
+      resolved_address = Address.new(
+        full_address: address.full_address,
+        zip: result&.postal_code,
+        latitude: result&.latitude,
+        longitude: result&.longitude
+      )
 
-      raise NotFoundError, "Could not find a zip code for this address" if address.zip.nil?
+      raise NotFoundError, "Could not find a zip code for this address" if resolved_address.zip.nil?
 
-      address.latitude = result.latitude
-      address.longitude = result.longitude
-      address
+      resolved_address
     rescue Geocoder::OverQueryLimitError
       raise ServiceError, "Address lookup rate limit reached, please try again shortly"
     rescue Timeout::Error
