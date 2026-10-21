@@ -24,3 +24,6 @@ tmp/
 /coverage/
 .DS_Store
 /config/*.key
+
+/app/assets/builds/*
+!/app/assets/builds/.keep
