@@ -1,18 +1,17 @@
-class Forecast
+module Forecast
   class Fetcher
     class ServiceError < StandardError; end
 
-    def self.call(address:, forecast:)
+    def self.call(address:, forecast_input:)
       response = OpenMeteo::Client.new.forecast(
         latitude: address.latitude,
         longitude: address.longitude,
-        temperature_unit: forecast.units,
-        forecast_days: forecast.days
+        temperature_unit: forecast_input.units,
+        forecast_days: forecast_input.days
       )
 
-      Forecast.new(
-        units: forecast.units,
-        days: forecast.days,
+      Forecast::Output.new(
+        units: forecast_input.units,
         current_temperature: response.fetch("current").fetch("temperature_2m"),
         daily_temperatures: daily_temperatures(response.fetch("daily"))
       )

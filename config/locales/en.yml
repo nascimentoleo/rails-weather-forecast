@@ -31,5 +31,5 @@ en:
   hello: "Hello world"
   activemodel:
     attributes:
-      address:
+      address/input:
         full_address: "Address"
