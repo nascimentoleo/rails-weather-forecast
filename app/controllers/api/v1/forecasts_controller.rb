@@ -14,7 +14,7 @@ module Api
         forecast_input = validated_forecast_input
 
         @address_output = Address::Fetcher.call(address_input)
-        @forecast_output = Forecast::Fetcher.call(address: @address_output, forecast_input: forecast_input)
+        @forecast_output = Forecast::CachedFetcher.call(address_output: @address_output, forecast_input: forecast_input)
       end
 
       private

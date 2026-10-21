@@ -1,3 +1,5 @@
+json.from_cache @forecast_output.from_cache
+
 json.address do
   json.extract! @address_output, :full_address, :zip, :latitude, :longitude
 end
