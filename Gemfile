@@ -55,6 +55,15 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", "1.1.0", require: false
+
+  # Library to build tests in BDD
+  gem "rspec-rails", "8.0.4"
+
+  # Library to mock http requests
+  gem "webmock", "3.34.0"
+
+  # Mock objects for tests
+  gem "factory_bot_rails", "6.5.1"
 end
 
 group :development do
