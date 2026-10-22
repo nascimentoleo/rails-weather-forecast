@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+@layer components {
+  .card {
+    @apply rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200;
+  }
+
+  .label {
+    @apply mb-1 block text-sm font-medium text-slate-700;
+  }
+
+  .input {
+    @apply block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 shadow-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200;
+  }
+
+  .button {
+    @apply w-full cursor-pointer rounded-lg bg-sky-600 px-4 py-2.5 font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 disabled:cursor-wait disabled:opacity-60;
+  }
+
+  .alert {
+    @apply rounded-xl border border-red-200 bg-red-50 p-4 text-red-700;
+  }
+
+  .dropdown {
+    @apply rounded-xl bg-white shadow-lg ring-1 ring-slate-200;
+  }
+
+  .badge {
+    @apply shrink-0 rounded-full px-3 py-1 text-xs font-medium;
+  }
+}

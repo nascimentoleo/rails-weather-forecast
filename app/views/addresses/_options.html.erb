@@ -1,0 +1,14 @@
+<ul class="dropdown max-h-80 divide-y divide-slate-100 overflow-y-auto" role="listbox" aria-label="Matching addresses">
+  <% addresses.each do |address| %>
+    <li role="option">
+      <%= link_to forecast_path(full_address: address.full_address, units: params[:units], days: params[:days]),
+            data: { turbo_frame: "_top" },
+            class: "block px-4 py-3 hover:bg-sky-50 focus:bg-sky-50 focus:outline-none" do %>
+        <span class="block text-slate-900"><%= address.full_address %></span>
+        <span class="block text-sm text-slate-500">
+          <%= [ address.city, address.state ].compact.join(", ") %> · <%= address.zip %>
+        </span>
+      <% end %>
+    </li>
+  <% end %>
+</ul>

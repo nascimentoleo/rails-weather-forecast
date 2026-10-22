@@ -1,0 +1,18 @@
+<div>
+  <%= form.label :full_address, "Address", class: "label" %>
+
+  <div class="relative">
+    <%= form.text_field :full_address,
+          value: params[:full_address],
+          required: true,
+          minlength: Address::Input::MIN_LENGTH,
+          maxlength: Address::Input::MAX_LENGTH,
+          autocomplete: "off",
+          autofocus: true,
+          placeholder: "Type an address and press Enter",
+          class: "input" %>
+
+    <%= turbo_frame_tag "address_options",
+          class: "absolute inset-x-0 top-full z-20 mt-1 block transition-opacity aria-busy:opacity-50" %>
+  </div>
+</div>

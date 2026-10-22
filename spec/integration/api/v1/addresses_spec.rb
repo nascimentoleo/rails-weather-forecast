@@ -1,13 +1,13 @@
 require "rails_helper"
 
 RSpec.describe "Addresses API v1 integration", type: :request do
-  subject(:get_addresses) { get api_v1_addresses_path, params: { search: search } }
+  subject(:get_addresses) { get api_v1_addresses_path, params: { full_address: full_address } }
 
-  let(:search) { "1180 seven seas" }
+  let(:full_address) { "1180 seven seas" }
   let(:nominatim_url) { "https://nominatim.openstreetmap.org/search" }
   let(:nominatim_request) do
     {
-      "q" => search,
+      "q" => full_address,
       "countrycodes" => "us",
       "limit" => Address::Searcher::MAX_RESULTS.to_s,
       "format" => "json",
@@ -74,7 +74,7 @@ RSpec.describe "Addresses API v1 integration", type: :request do
     end
 
     context "when Nominatim only finds cities without a zip code" do
-      let(:search) { "Orlando" }
+      let(:full_address) { "Orlando" }
       let(:nominatim_response) do
         <<~JSON
           [

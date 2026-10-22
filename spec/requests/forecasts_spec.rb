@@ -16,7 +16,7 @@ RSpec.describe "Forecasts page", type: :request do
       get root_path
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Get forecast")
+      expect(response.body).to include(%(name="full_address"))
       expect(Address::Fetcher).not_to have_received(:call)
     end
   end
@@ -24,7 +24,7 @@ RSpec.describe "Forecasts page", type: :request do
   describe "GET /forecast" do
     subject(:get_forecast_page) { get forecast_path, params: params }
 
-    let(:params) { { address: address_input.full_address, units: "fahrenheit", days: 2 } }
+    let(:params) { { full_address: address_input.full_address, units: "fahrenheit", days: 2 } }
 
     context "when the address, units and days are valid" do
       it "shows the address, its zip code and the forecast" do
@@ -46,13 +46,13 @@ RSpec.describe "Forecasts page", type: :request do
     end
 
     context "when the submitted address is blank" do
-      let(:params) { { address: "" } }
+      let(:params) { { full_address: "" } }
 
       it "shows that the address is required" do
         get_forecast_page
 
         expect(response).to have_http_status(:bad_request)
-        expect(response.body).to include("Address is required")
+        expect(response.body).to include("Full address is required")
       end
     end
 
@@ -63,7 +63,7 @@ RSpec.describe "Forecasts page", type: :request do
         get_forecast_page
 
         expect(response).to have_http_status(:unprocessable_content)
-        expect(response.body).to include("Could not find a zip code for this address", "Get forecast")
+        expect(response.body).to include("Could not find a zip code for this address", %(name="full_address"))
       end
     end
   end

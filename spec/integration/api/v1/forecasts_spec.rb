@@ -4,7 +4,7 @@ RSpec.describe "Forecasts API v1 integration", type: :request do
   subject(:get_forecast) { get api_v1_forecast_path, params: params }
 
   let(:address_input) { build(:address_input) }
-  let(:params) { { address: address_input.full_address, units: "fahrenheit", days: 2 } }
+  let(:params) { { full_address: address_input.full_address, units: "fahrenheit", days: 2 } }
   let(:original_cache) { Rails.cache }
 
   let(:nominatim_url) { "https://nominatim.openstreetmap.org/search" }

@@ -1,0 +1,11 @@
+<%= turbo_frame_tag "address_options" do %>
+  <% if @error %>
+    <div class="alert text-sm shadow-lg" role="alert"><%= @error %></div>
+  <% elsif @addresses.empty? %>
+    <div class="dropdown p-3 text-sm text-slate-600" role="status">
+      No addresses with a zip code found. Try a street address or a zip code.
+    </div>
+  <% else %>
+    <%= render "addresses/options", addresses: @addresses %>
+  <% end %>
+<% end %>

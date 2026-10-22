@@ -1,9 +1,9 @@
 <%= render "search" %>
 
-<%= turbo_frame_tag "forecast", class: "mt-8 block transition-opacity aria-busy:opacity-50" do %>
+<div class="mt-8">
   <% if @error %>
-    <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700" role="alert"><%= @error %></div>
+    <div class="alert" role="alert"><%= @error %></div>
   <% else %>
     <%= render "forecast", address: @address_output, forecast: @forecast_output %>
   <% end %>
-<% end %>
+</div>

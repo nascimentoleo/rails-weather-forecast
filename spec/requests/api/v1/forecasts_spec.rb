@@ -5,7 +5,7 @@ RSpec.describe "Forecasts API v1", type: :request do
 
   let(:address_input) { build(:address_input) }
   let(:address_output) { build(:address_output) }
-  let(:params) { { address: address_input.full_address, units: "fahrenheit", days: 2 } }
+  let(:params) { { full_address: address_input.full_address, units: "fahrenheit", days: 2 } }
   let(:from_cache) { false }
   let(:forecast_output) { build(:forecast_output, from_cache: from_cache) }
 
@@ -58,7 +58,7 @@ RSpec.describe "Forecasts API v1", type: :request do
     end
 
     context "when the units and days are not given" do
-      let(:params) { { address: address_input.full_address } }
+      let(:params) { { full_address: address_input.full_address } }
 
       it "fetches the forecast with the default units and days" do
         get_forecast
@@ -77,13 +77,13 @@ RSpec.describe "Forecasts API v1", type: :request do
         get_forecast
 
         expect(response).to have_http_status(:bad_request)
-        expect(response.parsed_body).to eq("error" => "Address is required")
+        expect(response.parsed_body).to eq("error" => "Full address is required")
         expect(Address::Fetcher).not_to have_received(:call)
       end
     end
 
     context "when the units are invalid" do
-      let(:params) { { address: address_input.full_address, units: "kelvin" } }
+      let(:params) { { full_address: address_input.full_address, units: "kelvin" } }
 
       it "responds with bad request without looking up the address" do
         get_forecast

@@ -24,7 +24,7 @@ class ForecastsController < ApplicationController
   end
 
   def validated_address_input
-    Address::Input.new(full_address: params.expect(:address)).tap(&:validate!)
+    Address::Input.new(full_address: params.expect(:full_address)).tap(&:validate!)
   end
 
   def validated_forecast_input
