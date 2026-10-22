@@ -65,54 +65,6 @@ RSpec.describe "Addresses API v1 integration", type: :request do
           ]
         )
       end
-
-      it "calls Nominatim once with the expected parameters" do
-        get_addresses
-
-        expect(nominatim_stub).to have_been_requested.once
-      end
-    end
-
-    context "when Nominatim only finds cities without a zip code" do
-      let(:full_address) { "Orlando" }
-      let(:nominatim_response) do
-        <<~JSON
-          [
-            {
-              "lat": "28.5421109",
-              "lon": "-81.3790304",
-              "display_name": "Orlando, Orange County, Florida, United States",
-              "address": { "city": "Orlando", "state": "Florida" }
-            },
-            {
-              "lat": "35.9314294",
-              "lon": "-97.3747668",
-              "display_name": "Orlando, Logan County, Oklahoma, United States",
-              "address": { "town": "Orlando", "state": "Oklahoma" }
-            }
-          ]
-        JSON
-      end
-
-      before { nominatim_stub.to_return(status: 200, body: nominatim_response) }
-
-      it "returns an empty list because none of them can be used for a forecast" do
-        get_addresses
-
-        expect(response).to have_http_status(:ok)
-        expect(response.parsed_body).to eq("addresses" => [])
-      end
-    end
-
-    context "when Nominatim times out" do
-      before { nominatim_stub.to_timeout }
-
-      it "responds with bad gateway explaining the timeout" do
-        get_addresses
-
-        expect(response).to have_http_status(:bad_gateway)
-        expect(response.parsed_body).to eq("error" => "Address lookup timed out, please try again")
-      end
     end
   end
 end

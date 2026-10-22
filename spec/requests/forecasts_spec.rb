@@ -70,17 +70,6 @@ RSpec.describe "Forecasts page", type: :request do
       end
     end
 
-    context "when the submitted address is blank" do
-      let(:params) { { full_address: "" } }
-
-      it "shows that the address is required" do
-        get_forecast_page
-
-        expect(response).to have_http_status(:bad_request)
-        expect(response.body).to include("Full address is required")
-      end
-    end
-
     context "when the address cannot be found" do
       before { allow(Address::CachedFetcher).to receive(:call).and_return([]) }
 

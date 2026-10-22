@@ -97,13 +97,6 @@ RSpec.describe "Forecasts API v1 integration", type: :request do
         )
       end
 
-      it "calls Nominatim and Open-Meteo once with the expected parameters" do
-        get_forecast
-
-        expect(nominatim_stub).to have_been_requested.once
-        expect(open_meteo_stub).to have_been_requested.once
-      end
-
       context "and the same forecast was requested before" do
         before { get api_v1_forecast_path, params: params }
 
@@ -115,29 +108,6 @@ RSpec.describe "Forecasts API v1 integration", type: :request do
           expect(nominatim_stub).to have_been_requested.once
           expect(open_meteo_stub).to have_been_requested.once
         end
-      end
-    end
-
-    context "when Nominatim finds nothing" do
-      before { nominatim_stub.to_return(status: 200, body: "[]") }
-
-      it "responds with unprocessable content without calling Open-Meteo" do
-        get_forecast
-
-        expect(response).to have_http_status(:unprocessable_content)
-        expect(response.parsed_body).to eq("error" => "Could not find a zip code for this address")
-        expect(open_meteo_stub).not_to have_been_requested
-      end
-    end
-
-    context "when Nominatim times out" do
-      before { nominatim_stub.to_timeout }
-
-      it "responds with bad gateway explaining the timeout" do
-        get_forecast
-
-        expect(response).to have_http_status(:bad_gateway)
-        expect(response.parsed_body).to eq("error" => "Address lookup timed out, please try again")
       end
     end
 

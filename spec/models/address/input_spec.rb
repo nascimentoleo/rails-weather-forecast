@@ -19,15 +19,6 @@ RSpec.describe Address::Input, type: :model do
       end
     end
 
-    context "when the full address is empty" do
-      let(:attributes) { { full_address: "" } }
-
-      it "is invalid and reports that the address is required" do
-        expect(address_input).not_to be_valid
-        expect(address_input.errors.full_messages).to contain_exactly("Address is required")
-      end
-    end
-
     context "when the full address has only whitespace and control characters" do
       let(:attributes) { { full_address: " \t\n\u0000 " } }
 

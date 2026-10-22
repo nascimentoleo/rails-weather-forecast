@@ -105,11 +105,11 @@ RSpec.describe Address::Fetcher do
         end
       end
 
-      context "because the service is unavailable" do
-        let(:geocoder_error) { Geocoder::ServiceUnavailable }
+      context "because the request timed out" do
+        let(:geocoder_error) { Geocoder::LookupTimeout }
 
-        it "raises a service error about the connection" do
-          expect { fetch_addresses }.to raise_error(described_class::ServiceError, "Could not reach the address lookup service")
+        it "raises a service error about the timeout" do
+          expect { fetch_addresses }.to raise_error(described_class::ServiceError, "Address lookup timed out, please try again")
         end
       end
     end

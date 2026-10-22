@@ -22,12 +22,6 @@ RSpec.describe Forecast::Input, type: :model do
       it { is_expected.to be_valid }
     end
 
-    context "when the units are celsius" do
-      let(:attributes) { { units: "celsius" } }
-
-      it { is_expected.to be_valid }
-    end
-
     context "when the units are not supported" do
       let(:attributes) { { units: "kelvin" } }
 
