@@ -62,7 +62,7 @@ bin/setup
 
 To start the server again later, run `bin/dev`.
 
-With either option, open <http://localhost:3000>.
+With either option, open `http://localhost:3000` in your browser.
 
 ## Usage
 
@@ -85,7 +85,7 @@ The API can be used on its own, as a backend:
 curl "http://localhost:3000/api/v1/forecast?full_address=1180%20Seven%20Seas%20Dr,%20Lake%20Buena%20Vista&units=fahrenheit&days=3"
 ```
 
-For parameters, responses and error codes, see the API documentation: open <http://localhost:3000/api-docs> or read [`swagger/v1/swagger.yaml`](swagger/v1/swagger.yaml).
+For parameters, responses and error codes, see the API documentation: open `http://localhost:3000/api-docs` or read [`swagger/v1/swagger.yaml`](swagger/v1/swagger.yaml).
 
 ## How it works
 
