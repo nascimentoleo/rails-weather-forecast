@@ -5,7 +5,7 @@
       <p class="text-sm text-slate-500">Zip code <span class="font-medium text-slate-700"><%= address.zip %></span></p>
     </div>
 
-    <% if forecast.from_cache %>
+    <% if address.from_cache && forecast.from_cache %>
       <span class="badge bg-amber-100 text-amber-800">From cache</span>
     <% else %>
       <span class="badge bg-emerald-100 text-emerald-800">Live</span>

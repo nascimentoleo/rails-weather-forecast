@@ -78,12 +78,12 @@ RSpec.describe "Forecasts API v1 integration", type: :request do
 
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body).to eq(
-          "from_cache" => false,
           "address" => {
             "full_address" => "Magic Kingdom, 1180, Seven Seas Drive, Bay Lake, Florida, 32830, United States",
             "zip" => "32830",
             "latitude" => 28.4177374,
-            "longitude" => -81.5811767
+            "longitude" => -81.5811767,
+            "from_cache" => false
           },
           "forecast" => {
             "units" => "fahrenheit",
@@ -91,7 +91,8 @@ RSpec.describe "Forecasts API v1 integration", type: :request do
             "daily_temperatures" => [
               { "date" => "2026-10-21", "high" => 66.4, "low" => 50.1 },
               { "date" => "2026-10-22", "high" => 68.0, "low" => 52.3 }
-            ]
+            ],
+            "from_cache" => false
           }
         )
       end
@@ -106,10 +107,12 @@ RSpec.describe "Forecasts API v1 integration", type: :request do
       context "and the same forecast was requested before" do
         before { get api_v1_forecast_path, params: params }
 
-        it "returns the forecast from the cache without calling Open-Meteo again" do
+        it "returns the address and the forecast from the cache without calling Nominatim or Open-Meteo again" do
           get_forecast
 
-          expect(response.parsed_body).to include("from_cache" => true)
+          expect(response.parsed_body.dig("address", "from_cache")).to be(true)
+          expect(response.parsed_body.dig("forecast", "from_cache")).to be(true)
+          expect(nominatim_stub).to have_been_requested.once
           expect(open_meteo_stub).to have_been_requested.once
         end
       end

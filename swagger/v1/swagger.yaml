@@ -130,8 +130,6 @@ components:
     forecast:
       type: object
       properties:
-        from_cache:
-          type: boolean
         address:
           type: object
           properties:
@@ -143,11 +141,15 @@ components:
               type: number
             longitude:
               type: number
+            from_cache:
+              type: boolean
+              description: True when the address was served from the 30-minute cache
           required:
           - full_address
           - zip
           - latitude
           - longitude
+          - from_cache
         forecast:
           type: object
           properties:
@@ -174,12 +176,15 @@ components:
                 - date
                 - high
                 - low
+            from_cache:
+              type: boolean
+              description: True when the forecast was served from the 30-minute cache
           required:
           - units
           - current_temperature
           - daily_temperatures
+          - from_cache
       required:
-      - from_cache
       - address
       - forecast
     error:

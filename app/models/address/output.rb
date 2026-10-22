@@ -12,6 +12,7 @@ module Address
     attribute :zip, :string
     attribute :latitude, :float
     attribute :longitude, :float
+    attribute :from_cache, :boolean, default: false
 
     # Normalize zip code to accept only us format
     normalizes :zip, with: ->(zip) { zip[US_ZIP_CODE] }

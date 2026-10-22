@@ -2,9 +2,10 @@ require "rails_helper"
 
 RSpec.describe "Forecasts page", type: :request do
   let(:address_input) { build(:address_input) }
-  let(:address_output) { build(:address_output) }
-  let(:from_cache) { false }
-  let(:forecast_output) { build(:forecast_output, from_cache: from_cache) }
+  let(:address_from_cache) { false }
+  let(:address_output) { build(:address_output, from_cache: address_from_cache) }
+  let(:forecast_from_cache) { false }
+  let(:forecast_output) { build(:forecast_output, from_cache: forecast_from_cache) }
 
   before do
     allow(Address::CachedFetcher).to receive(:call).and_return([ address_output ])
@@ -34,13 +35,37 @@ RSpec.describe "Forecasts page", type: :request do
         expect(response.body).to include(address_output.full_address, address_output.zip, "61°F", "Live")
       end
 
-      context "and the forecast comes from the cache" do
-        let(:from_cache) { true }
+      context "and the address and the forecast come from the cache" do
+        let(:address_from_cache) { true }
+        let(:forecast_from_cache) { true }
 
         it "shows that the result was pulled from the cache" do
           get_forecast_page
 
           expect(response.body).to include("From cache")
+          expect(response.body).not_to include("Live")
+        end
+      end
+
+      context "and only the address comes from the cache" do
+        let(:address_from_cache) { true }
+
+        it "shows the result as live" do
+          get_forecast_page
+
+          expect(response.body).to include("Live")
+          expect(response.body).not_to include("From cache")
+        end
+      end
+
+      context "and only the forecast comes from the cache" do
+        let(:forecast_from_cache) { true }
+
+        it "shows the result as live" do
+          get_forecast_page
+
+          expect(response.body).to include("Live")
+          expect(response.body).not_to include("From cache")
         end
       end
     end

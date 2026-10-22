@@ -42,16 +42,16 @@ RSpec.configure do |config|
           forecast: {
             type: :object,
             properties: {
-              from_cache: { type: :boolean },
               address: {
                 type: :object,
                 properties: {
                   full_address: { type: :string },
                   zip: { type: :string },
                   latitude: { type: :number },
-                  longitude: { type: :number }
+                  longitude: { type: :number },
+                  from_cache: { type: :boolean, description: "True when the address was served from the 30-minute cache" }
                 },
-                required: %w[full_address zip latitude longitude]
+                required: %w[full_address zip latitude longitude from_cache]
               },
               forecast: {
                 type: :object,
@@ -69,12 +69,13 @@ RSpec.configure do |config|
                       },
                       required: %w[date high low]
                     }
-                  }
+                  },
+                  from_cache: { type: :boolean, description: "True when the forecast was served from the 30-minute cache" }
                 },
-                required: %w[units current_temperature daily_temperatures]
+                required: %w[units current_temperature daily_temperatures from_cache]
               }
             },
-            required: %w[from_cache address forecast]
+            required: %w[address forecast]
           },
           error: {
             type: :object,

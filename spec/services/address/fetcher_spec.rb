@@ -5,13 +5,14 @@ RSpec.describe Address::Fetcher do
   subject(:fetch_addresses) { described_class.call(address_input) }
 
   let(:address_input) { build(:address_input) }
+  let(:postal_code) { "32830" }
   let(:magic_kingdom_result) do
     instance_double(
       Geocoder::Result::Nominatim,
       display_name: "Magic Kingdom, 1180, Seven Seas Drive, Bay Lake, Florida, 32830, United States",
       city: "Bay Lake",
       state: "Florida",
-      postal_code: "32830",
+      postal_code: postal_code,
       latitude: 28.4190753,
       longitude: -81.5817158
     )
@@ -50,6 +51,22 @@ RSpec.describe Address::Fetcher do
 
       it "returns only the addresses with a zip code" do
         expect(fetch_addresses).to contain_exactly(have_attributes(full_address: magic_kingdom_result.display_name))
+      end
+    end
+
+    context "when a match has a ZIP+4 postal code" do
+      let(:postal_code) { "32830-1000" }
+
+      it "keeps only the 5-digit zip code" do
+        expect(fetch_addresses).to contain_exactly(have_attributes(zip: "32830"))
+      end
+    end
+
+    context "when a match has a postal code that is not a US zip code" do
+      let(:postal_code) { "SW1A 2AA" }
+
+      it "leaves it out of the results" do
+        expect(fetch_addresses).to be_empty
       end
     end
 

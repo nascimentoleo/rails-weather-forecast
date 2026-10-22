@@ -2,9 +2,10 @@ require "swagger_helper"
 
 RSpec.describe "Forecasts API v1", type: :request do
   let(:address_input) { build(:address_input) }
-  let(:address_output) { build(:address_output) }
-  let(:from_cache) { false }
-  let(:forecast_output) { build(:forecast_output, from_cache: from_cache) }
+  let(:address_from_cache) { false }
+  let(:address_output) { build(:address_output, from_cache: address_from_cache) }
+  let(:forecast_from_cache) { false }
+  let(:forecast_output) { build(:forecast_output, from_cache: forecast_from_cache) }
 
   before do
     allow(Address::CachedFetcher).to receive(:call).and_return([ address_output ])
@@ -38,27 +39,30 @@ RSpec.describe "Forecasts API v1", type: :request do
               forecast_input: having_attributes(units: "fahrenheit", days: 2)
             )
             expect(response.parsed_body).to eq(
-              "from_cache" => false,
               "address" => {
                 "full_address" => address_output.full_address,
                 "zip" => address_output.zip,
                 "latitude" => address_output.latitude,
-                "longitude" => address_output.longitude
+                "longitude" => address_output.longitude,
+                "from_cache" => false
               },
               "forecast" => {
                 "units" => forecast_output.units,
                 "current_temperature" => forecast_output.current_temperature,
-                "daily_temperatures" => forecast_output.daily_temperatures.as_json
+                "daily_temperatures" => forecast_output.daily_temperatures.as_json,
+                "from_cache" => false
               }
             )
           end
         end
 
-        context "when the forecast comes from the cache" do
-          let(:from_cache) { true }
+        context "when the address and the forecast come from the cache" do
+          let(:address_from_cache) { true }
+          let(:forecast_from_cache) { true }
 
-          run_test! "indicates that the result was pulled from the cache" do
-            expect(response.parsed_body).to include("from_cache" => true)
+          run_test! "indicates that both were pulled from the cache" do
+            expect(response.parsed_body.dig("address", "from_cache")).to be(true)
+            expect(response.parsed_body.dig("forecast", "from_cache")).to be(true)
           end
         end
 
