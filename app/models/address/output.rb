@@ -7,6 +7,8 @@ module Address
     US_ZIP_CODE = /\d{5}/
 
     attribute :full_address, :string
+    attribute :city, :string
+    attribute :state, :string
     attribute :zip, :string
     attribute :latitude, :float
     attribute :longitude, :float

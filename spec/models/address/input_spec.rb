@@ -37,6 +37,21 @@ RSpec.describe Address::Input, type: :model do
       end
     end
 
+    context "when the full address is shorter than the minimum length" do
+      let(:attributes) { { full_address: "a" * (described_class::MIN_LENGTH - 1) } }
+
+      it "is invalid and reports the minimum length" do
+        expect(address_input).not_to be_valid
+        expect(address_input.errors.full_messages).to contain_exactly("Address must be at least #{described_class::MIN_LENGTH} characters")
+      end
+    end
+
+    context "when the full address has exactly the minimum length" do
+      let(:attributes) { { full_address: "a" * described_class::MIN_LENGTH } }
+
+      it { is_expected.to be_valid }
+    end
+
     context "when the full address has exactly the maximum length" do
       let(:attributes) { { full_address: "a" * described_class::MAX_LENGTH } }
 

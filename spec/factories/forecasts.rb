@@ -1,7 +1,5 @@
 FactoryBot.define do
-  factory :forecast_input, class: "Forecast::Input" do
-    initialize_with { new(attributes) }
-  end
+  factory :forecast_input, class: "Forecast::Input"
 
   factory :forecast_output, class: "Forecast::Output" do
     units { "fahrenheit" }
@@ -12,7 +10,5 @@ FactoryBot.define do
         { date: "2026-10-22", high: 68.0, low: 52.3 }
       ]
     end
-
-    initialize_with { new(attributes) }
   end
 end

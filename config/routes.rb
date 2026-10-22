@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       resource :forecast, only: :show, controller: "/forecasts"
+      resources :addresses, only: :index, controller: "/addresses"
     end
   end
 
