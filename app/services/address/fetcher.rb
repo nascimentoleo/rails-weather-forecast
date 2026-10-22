@@ -1,20 +1,23 @@
 module Address
   class Fetcher
-    class NotFoundError < StandardError; end
     class ServiceError < StandardError; end
 
+    MAX_RESULTS = 10
+
     def self.call(address_input)
-      result = Geocoder.search(address_input.full_address, params: { countrycodes: "us" }).first
-      address = Address::Output.new(
-        full_address: address_input.full_address,
-        zip: result&.postal_code,
-        latitude: result&.latitude,
-        longitude: result&.longitude
-      )
+      results = Geocoder.search(address_input.full_address, params: { countrycodes: "us", limit: MAX_RESULTS })
+      addresses = results.map do |result|
+        Address::Output.new(
+          full_address: result.display_name,
+          city: result.city,
+          state: result.state,
+          zip: result.postal_code,
+          latitude: result.latitude,
+          longitude: result.longitude
+        )
+      end
 
-      raise NotFoundError, "Could not find a zip code for this address" if address.zip.nil?
-
-      address
+      addresses.select(&:zip)
     rescue Geocoder::OverQueryLimitError
       raise ServiceError, "Address lookup rate limit reached, please try again shortly"
     rescue Timeout::Error

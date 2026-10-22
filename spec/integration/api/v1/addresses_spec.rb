@@ -9,7 +9,7 @@ RSpec.describe "Addresses API v1 integration", type: :request do
     {
       "q" => full_address,
       "countrycodes" => "us",
-      "limit" => Address::Searcher::MAX_RESULTS.to_s,
+      "limit" => Address::Fetcher::MAX_RESULTS.to_s,
       "format" => "json",
       "addressdetails" => "1",
       "accept-language" => "en"

@@ -2,48 +2,54 @@ require "rails_helper"
 require "geocoder/results/nominatim"
 
 RSpec.describe Address::Fetcher do
-  subject(:fetch_address) { described_class.call(address_input) }
+  subject(:fetch_addresses) { described_class.call(address_input) }
 
   let(:address_input) { build(:address_input) }
-  let(:address_output) { build(:address_output) }
-  let(:postal_code) { address_output.zip }
-  let(:geocoder_result) { instance_double(Geocoder::Result::Nominatim, postal_code: postal_code, latitude: address_output.latitude, longitude: address_output.longitude) }
+  let(:magic_kingdom_result) do
+    instance_double(
+      Geocoder::Result::Nominatim,
+      display_name: "Magic Kingdom, 1180, Seven Seas Drive, Bay Lake, Florida, 32830, United States",
+      city: "Bay Lake",
+      state: "Florida",
+      postal_code: "32830",
+      latitude: 28.4190753,
+      longitude: -81.5817158
+    )
+  end
+  let(:geocoder_results) { [ magic_kingdom_result ] }
 
-  before { allow(Geocoder).to receive(:search).and_return([ geocoder_result ]) }
+  before { allow(Geocoder).to receive(:search).and_return(geocoder_results) }
 
   describe ".call" do
-    context "when the geocoder finds the address" do
-      context "with a 5-digit zip code" do
-        it "returns the address with its zip code and coordinates" do
-          expect(fetch_address).to have_attributes(
-            full_address: address_output.full_address,
-            zip: address_output.zip,
-            latitude: address_output.latitude,
-            longitude: address_output.longitude
+    context "when the geocoder finds matching addresses" do
+      it "returns each address with its city, state, zip code and coordinates" do
+        expect(fetch_addresses).to contain_exactly(
+          have_attributes(
+            full_address: magic_kingdom_result.display_name,
+            city: "Bay Lake",
+            state: "Florida",
+            zip: "32830",
+            latitude: 28.4190753,
+            longitude: -81.5817158
           )
-        end
-
-        it "searches only in the United States" do
-          fetch_address
-
-          expect(Geocoder).to have_received(:search).with(address_input.full_address, params: { countrycodes: "us" })
-        end
+        )
       end
 
-      context "with a ZIP+4 postal code" do
-        let(:postal_code) { "#{address_output.zip}-1000" }
+      it "searches only in the United States and limits the number of results" do
+        fetch_addresses
 
-        it "keeps only the 5-digit zip code" do
-          expect(fetch_address).to have_attributes(zip: address_output.zip)
-        end
+        expect(Geocoder).to have_received(:search).with(address_input.full_address, params: { countrycodes: "us", limit: described_class::MAX_RESULTS })
       end
+    end
 
-      context "with a postal code that is not a US zip code" do
-        let(:postal_code) { "SW1A 2AA" }
+    context "when some matches have no US zip code" do
+      let(:result_without_zip_code) do
+        instance_double(Geocoder::Result::Nominatim, display_name: "Bay Lake, Florida, United States", city: "Bay Lake", state: "Florida", postal_code: nil, latitude: 28.39, longitude: -81.56)
+      end
+      let(:geocoder_results) { [ magic_kingdom_result, result_without_zip_code ] }
 
-        it "raises a not found error" do
-          expect { fetch_address }.to raise_error(described_class::NotFoundError, "Could not find a zip code for this address")
-        end
+      it "returns only the addresses with a zip code" do
+        expect(fetch_addresses).to contain_exactly(have_attributes(full_address: magic_kingdom_result.display_name))
       end
     end
 
@@ -54,7 +60,7 @@ RSpec.describe Address::Fetcher do
         let(:geocoder_error) { Geocoder::OverQueryLimitError }
 
         it "raises a service error about the rate limit" do
-          expect { fetch_address }.to raise_error(described_class::ServiceError, "Address lookup rate limit reached, please try again shortly")
+          expect { fetch_addresses }.to raise_error(described_class::ServiceError, "Address lookup rate limit reached, please try again shortly")
         end
       end
 
@@ -62,7 +68,7 @@ RSpec.describe Address::Fetcher do
         let(:geocoder_error) { SocketError }
 
         it "raises a service error about the connection" do
-          expect { fetch_address }.to raise_error(described_class::ServiceError, "Could not reach the address lookup service")
+          expect { fetch_addresses }.to raise_error(described_class::ServiceError, "Could not reach the address lookup service")
         end
       end
 
@@ -70,7 +76,7 @@ RSpec.describe Address::Fetcher do
         let(:geocoder_error) { Errno::ECONNREFUSED }
 
         it "raises a service error about the connection" do
-          expect { fetch_address }.to raise_error(described_class::ServiceError, "Could not reach the address lookup service")
+          expect { fetch_addresses }.to raise_error(described_class::ServiceError, "Could not reach the address lookup service")
         end
       end
 
@@ -78,7 +84,7 @@ RSpec.describe Address::Fetcher do
         let(:geocoder_error) { Geocoder::ResponseParseError.new("<html>Access blocked</html>") }
 
         it "raises a service error about the connection" do
-          expect { fetch_address }.to raise_error(described_class::ServiceError, "Could not reach the address lookup service")
+          expect { fetch_addresses }.to raise_error(described_class::ServiceError, "Could not reach the address lookup service")
         end
       end
 
@@ -86,7 +92,7 @@ RSpec.describe Address::Fetcher do
         let(:geocoder_error) { Geocoder::ServiceUnavailable }
 
         it "raises a service error about the connection" do
-          expect { fetch_address }.to raise_error(described_class::ServiceError, "Could not reach the address lookup service")
+          expect { fetch_addresses }.to raise_error(described_class::ServiceError, "Could not reach the address lookup service")
         end
       end
     end

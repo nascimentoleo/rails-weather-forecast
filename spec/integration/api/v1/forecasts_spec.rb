@@ -12,6 +12,7 @@ RSpec.describe "Forecasts API v1 integration", type: :request do
     {
       "q" => address_input.full_address,
       "countrycodes" => "us",
+      "limit" => Address::Fetcher::MAX_RESULTS.to_s,
       "format" => "json",
       "addressdetails" => "1",
       "accept-language" => "en"
@@ -25,6 +26,7 @@ RSpec.describe "Forecasts API v1 integration", type: :request do
         {
           "lat": "28.4177374",
           "lon": "-81.5811767",
+          "display_name": "Magic Kingdom, 1180, Seven Seas Drive, Bay Lake, Florida, 32830, United States",
           "address": { "postcode": "32830" }
         }
       ]
@@ -78,7 +80,7 @@ RSpec.describe "Forecasts API v1 integration", type: :request do
         expect(response.parsed_body).to eq(
           "from_cache" => false,
           "address" => {
-            "full_address" => address_input.full_address,
+            "full_address" => "Magic Kingdom, 1180, Seven Seas Drive, Bay Lake, Florida, 32830, United States",
             "zip" => "32830",
             "latitude" => 28.4177374,
             "longitude" => -81.5811767

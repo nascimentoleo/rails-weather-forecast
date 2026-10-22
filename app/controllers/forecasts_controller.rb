@@ -8,7 +8,9 @@ class ForecastsController < ApplicationController
     address_input = validated_address_input
     forecast_input = validated_forecast_input
 
-    @address_output = Address::Fetcher.call(address_input)
+    @address_output = Address::CachedFetcher.call(address_input).first
+    return render_error("Could not find a zip code for this address", :unprocessable_content) unless @address_output
+
     @forecast_output = Forecast::CachedFetcher.call(address_output: @address_output, forecast_input: forecast_input)
 
     respond_to do |format|

@@ -7,7 +7,7 @@ RSpec.describe "Addresses API v1", type: :request do
   let(:magic_kingdom) { build(:address_output) }
   let(:white_house) { build(:address_output, :white_house) }
 
-  before { allow(Address::Searcher).to receive(:call).and_return([ magic_kingdom, white_house ]) }
+  before { allow(Address::CachedFetcher).to receive(:call).and_return([ magic_kingdom, white_house ]) }
 
   describe "GET /api/v1/addresses" do
     context "when the search is valid" do
@@ -26,7 +26,7 @@ RSpec.describe "Addresses API v1", type: :request do
       it "searches for the requested address" do
         get_addresses
 
-        expect(Address::Searcher).to have_received(:call).with(having_attributes(full_address: "1180 Seven Seas"))
+        expect(Address::CachedFetcher).to have_received(:call).with(having_attributes(full_address: "1180 Seven Seas"))
       end
     end
 
@@ -38,7 +38,7 @@ RSpec.describe "Addresses API v1", type: :request do
 
         expect(response).to have_http_status(:bad_request)
         expect(response.parsed_body).to eq("error" => "Full address is required")
-        expect(Address::Searcher).not_to have_received(:call)
+        expect(Address::CachedFetcher).not_to have_received(:call)
       end
     end
 
@@ -50,7 +50,7 @@ RSpec.describe "Addresses API v1", type: :request do
 
         expect(response).to have_http_status(:bad_request)
         expect(response.parsed_body).to eq("error" => "Address must be at least #{Address::Input::MIN_LENGTH} characters")
-        expect(Address::Searcher).not_to have_received(:call)
+        expect(Address::CachedFetcher).not_to have_received(:call)
       end
     end
   end

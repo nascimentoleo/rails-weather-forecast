@@ -7,7 +7,7 @@ RSpec.describe "Addresses page", type: :request do
   let(:magic_kingdom) { build(:address_output) }
   let(:addresses) { [ magic_kingdom ] }
 
-  before { allow(Address::Searcher).to receive(:call).and_return(addresses) }
+  before { allow(Address::CachedFetcher).to receive(:call).and_return(addresses) }
 
   describe "GET /addresses" do
     context "when matching addresses are found" do
@@ -40,7 +40,7 @@ RSpec.describe "Addresses page", type: :request do
 
         expect(response).to have_http_status(:bad_request)
         expect(response.body).to include("Address must be at least #{Address::Input::MIN_LENGTH} characters")
-        expect(Address::Searcher).not_to have_received(:call)
+        expect(Address::CachedFetcher).not_to have_received(:call)
       end
     end
   end

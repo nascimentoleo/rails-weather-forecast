@@ -3,7 +3,7 @@ class AddressesController < ApplicationController
 
   def index
     address_input = Address::Input.new(full_address: params.expect(:full_address)).tap(&:validate!)
-    @addresses = Address::Searcher.call(address_input)
+    @addresses = Address::CachedFetcher.call(address_input)
 
     respond_to do |format|
       format.html

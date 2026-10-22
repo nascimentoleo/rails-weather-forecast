@@ -7,7 +7,7 @@ RSpec.describe "Forecasts page", type: :request do
   let(:forecast_output) { build(:forecast_output, from_cache: from_cache) }
 
   before do
-    allow(Address::Fetcher).to receive(:call).and_return(address_output)
+    allow(Address::CachedFetcher).to receive(:call).and_return([ address_output ])
     allow(Forecast::CachedFetcher).to receive(:call).and_return(forecast_output)
   end
 
@@ -17,7 +17,7 @@ RSpec.describe "Forecasts page", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(%(name="full_address"))
-      expect(Address::Fetcher).not_to have_received(:call)
+      expect(Address::CachedFetcher).not_to have_received(:call)
     end
   end
 
@@ -57,7 +57,7 @@ RSpec.describe "Forecasts page", type: :request do
     end
 
     context "when the address cannot be found" do
-      before { allow(Address::Fetcher).to receive(:call).and_raise(Address::Fetcher::NotFoundError, "Could not find a zip code for this address") }
+      before { allow(Address::CachedFetcher).to receive(:call).and_return([]) }
 
       it "shows the error next to the search form" do
         get_forecast_page
