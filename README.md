@@ -27,50 +27,42 @@ It works as a web page and as a JSON API, and needs **no API keys or environment
 
 ## Getting started
 
-### With Docker
-
-Only [Docker](https://docs.docker.com/get-started/get-docker/) is needed. The app runs in development mode, and code changes apply without rebuilding.
-
 ```sh
 git clone https://github.com/nascimentoleo/rails-weather-forecast.git
 cd rails-weather-forecast
-docker compose up
 ```
 
-Open <http://localhost:3000>. To run the tests inside the container, while it's running:
+### With Docker (recommended)
+
+Requires [Docker](https://docs.docker.com/get-started/get-docker/).
 
 ```sh
-docker compose exec web bundle exec rspec
+docker compose up      # builds the image and starts the server
 ```
 
-### On macOS, for development
+### Without Docker
 
-These steps start from a clean macOS machine, with nothing installed.
+Requires Ruby 4.0.7. Install it with a Ruby version manager, such as [rbenv](https://github.com/rbenv/rbenv) or [asdf](https://asdf-vm.com):
 
 ```sh
-# 1. Command line tools (includes git and a C compiler)
-xcode-select --install
-
-# 2. Homebrew (follow the "Next steps" it prints to add brew to your PATH)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# 3. rbenv, to install and select the Ruby version
-brew install rbenv ruby-build libyaml openssl@3
-echo 'eval "$(rbenv init - zsh)"' >> ~/.zshrc
-source ~/.zshrc
-
-# 4. Ruby 4.0.7
+# with rbenv (it picks up the project's .ruby-version file)
 rbenv install 4.0.7
 
-# 5. The project (its .ruby-version file selects Ruby 4.0.7)
-git clone https://github.com/nascimentoleo/rails-weather-forecast.git
-cd rails-weather-forecast
+# or with asdf
+asdf plugin add ruby
+asdf install ruby 4.0.7
+asdf set ruby 4.0.7
+```
 
-# 6. Install gems and start the server
+Then install the gems and start the server:
+
+```sh
 bin/setup
 ```
 
-Open <http://localhost:3000>. Next time, start the server with `bin/dev`.
+To start the server again later, run `bin/dev`.
+
+With either option, open <http://localhost:3000>.
 
 ## Usage
 
@@ -117,7 +109,7 @@ Each step is cached for 30 minutes, so repeated searches don't call the external
 
 ```sh
 bin/ci                      # all checks in one go
-bundle exec rspec           # test suite
+bundle exec rspec           # test suite (with Docker: docker compose exec web bundle exec rspec)
 bin/rubocop                 # code style
 bin/brakeman                # security analysis
 bin/bundler-audit           # known vulnerabilities in gems
