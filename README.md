@@ -27,6 +27,24 @@ It works as a web page and as a JSON API, and needs **no API keys or environment
 
 ## Getting started
 
+### With Docker
+
+Only [Docker](https://docs.docker.com/get-started/get-docker/) is needed. The app runs in development mode, and code changes apply without rebuilding.
+
+```sh
+git clone https://github.com/nascimentoleo/rails-weather-forecast.git
+cd rails-weather-forecast
+docker compose up
+```
+
+Open <http://localhost:3000>. To run the tests inside the container, while it's running:
+
+```sh
+docker compose exec web bundle exec rspec
+```
+
+### On macOS, for development
+
 These steps start from a clean macOS machine, with nothing installed.
 
 ```sh
