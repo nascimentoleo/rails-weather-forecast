@@ -2,7 +2,7 @@ class AddressesController < ApplicationController
   include ErrorHandling
 
   def index
-    address_input = Address::Input.new(full_address: params.expect(:query)).tap(&:validate!)
+    address_input = Address::Input.new(full_address: params.expect(:search)).tap(&:validate!)
     @addresses = Address::Searcher.call(address_input)
 
     respond_to do |format|

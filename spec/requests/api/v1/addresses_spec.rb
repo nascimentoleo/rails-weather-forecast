@@ -3,14 +3,14 @@ require "rails_helper"
 RSpec.describe "Addresses API v1", type: :request do
   subject(:get_addresses) { get api_v1_addresses_path, params: params }
 
-  let(:params) { { query: "1180 Seven Seas" } }
+  let(:params) { { search: "1180 Seven Seas" } }
   let(:magic_kingdom) { build(:address_output) }
   let(:white_house) { build(:address_output, :white_house) }
 
   before { allow(Address::Searcher).to receive(:call).and_return([ magic_kingdom, white_house ]) }
 
   describe "GET /api/v1/addresses" do
-    context "when the query is valid" do
+    context "when the search is valid" do
       it "returns the matching addresses with their city, state, zip code and coordinates as JSON" do
         get_addresses
 
@@ -30,20 +30,20 @@ RSpec.describe "Addresses API v1", type: :request do
       end
     end
 
-    context "when the query is missing" do
+    context "when the search is missing" do
       let(:params) { {} }
 
       it "responds with bad request without searching" do
         get_addresses
 
         expect(response).to have_http_status(:bad_request)
-        expect(response.parsed_body).to eq("error" => "Query is required")
+        expect(response.parsed_body).to eq("error" => "Search is required")
         expect(Address::Searcher).not_to have_received(:call)
       end
     end
 
-    context "when the query is too short" do
-      let(:params) { { query: "NY" } }
+    context "when the search is too short" do
+      let(:params) { { search: "NY" } }
 
       it "responds with bad request without searching" do
         get_addresses
