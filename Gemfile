@@ -45,6 +45,9 @@ gem "image_processing", "1.14.0"
 # Gem to manipulate geocoding
 gem "geocoder", "1.8.6"
 
+# Generate documentation for apis
+gem "rswag", "2.17.0"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", "1.11.1", platforms: %i[ mri windows ], require: "debug/prelude"

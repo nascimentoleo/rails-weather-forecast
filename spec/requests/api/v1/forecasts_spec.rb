@@ -1,11 +1,8 @@
-require "rails_helper"
+require "swagger_helper"
 
 RSpec.describe "Forecasts API v1", type: :request do
-  subject(:get_forecast) { get api_v1_forecast_path, params: params }
-
   let(:address_input) { build(:address_input) }
   let(:address_output) { build(:address_output) }
-  let(:params) { { full_address: address_input.full_address, units: "fahrenheit", days: 2 } }
   let(:from_cache) { false }
   let(:forecast_output) { build(:forecast_output, from_cache: from_cache) }
 
@@ -14,83 +11,115 @@ RSpec.describe "Forecasts API v1", type: :request do
     allow(Forecast::CachedFetcher).to receive(:call).and_return(forecast_output)
   end
 
-  describe "GET /api/v1/forecast" do
-    context "when the address, units and days are valid" do
-      it "returns the address and its forecast as JSON" do
-        get_forecast
+  path "/api/v1/forecast" do
+    get "Returns the current temperature and the daily forecast for the zip code of a US address" do
+      tags "Forecast"
+      produces "application/json"
+      parameter name: :full_address, in: :query, required: true,
+                description: "US address to look up", example: "1180 Seven Seas Dr", schema: { type: :string }
+      parameter name: :units, in: :query, required: false,
+                schema: { type: :string, enum: Forecast::Input::UNITS, default: Forecast::Input::DEFAULT_UNITS }
+      parameter name: :days, in: :query, required: false,
+                schema: { type: :integer, minimum: 1, maximum: Forecast::Input::MAX_DAYS, default: Forecast::Input::DEFAULT_DAYS }
 
-        expect(response).to have_http_status(:ok)
-        expect(response.parsed_body).to eq(
-          "from_cache" => false,
-          "address" => {
-            "full_address" => address_output.full_address,
-            "zip" => address_output.zip,
-            "latitude" => address_output.latitude,
-            "longitude" => address_output.longitude
-          },
-          "forecast" => {
-            "units" => forecast_output.units,
-            "current_temperature" => forecast_output.current_temperature,
-            "daily_temperatures" => forecast_output.daily_temperatures.as_json
-          }
-        )
-      end
+      response "200", "the address and its forecast" do
+        schema "$ref" => "#/components/schemas/forecast"
 
-      it "fetches the forecast for the resolved address with the requested units and days" do
-        get_forecast
+        let(:full_address) { address_input.full_address }
 
-        expect(Address::CachedFetcher).to have_received(:call).with(having_attributes(full_address: address_input.full_address))
-        expect(Forecast::CachedFetcher).to have_received(:call).with(
-          address_output: address_output,
-          forecast_input: having_attributes(units: "fahrenheit", days: 2)
-        )
-      end
+        context "when the address, units and days are valid" do
+          let(:units) { "fahrenheit" }
+          let(:days) { 2 }
 
-      context "and the forecast comes from the cache" do
-        let(:from_cache) { true }
+          run_test! "returns the address and its forecast in the requested units and days" do
+            expect(Address::CachedFetcher).to have_received(:call).with(having_attributes(full_address: address_input.full_address))
+            expect(Forecast::CachedFetcher).to have_received(:call).with(
+              address_output: address_output,
+              forecast_input: having_attributes(units: "fahrenheit", days: 2)
+            )
+            expect(response.parsed_body).to eq(
+              "from_cache" => false,
+              "address" => {
+                "full_address" => address_output.full_address,
+                "zip" => address_output.zip,
+                "latitude" => address_output.latitude,
+                "longitude" => address_output.longitude
+              },
+              "forecast" => {
+                "units" => forecast_output.units,
+                "current_temperature" => forecast_output.current_temperature,
+                "daily_temperatures" => forecast_output.daily_temperatures.as_json
+              }
+            )
+          end
+        end
 
-        it "indicates that the result was pulled from the cache" do
-          get_forecast
+        context "when the forecast comes from the cache" do
+          let(:from_cache) { true }
 
-          expect(response.parsed_body).to include("from_cache" => true)
+          run_test! "indicates that the result was pulled from the cache" do
+            expect(response.parsed_body).to include("from_cache" => true)
+          end
+        end
+
+        context "when the units and days are not given" do
+          run_test! "fetches the forecast with the default units and days" do
+            expect(Forecast::CachedFetcher).to have_received(:call).with(
+              address_output: address_output,
+              forecast_input: having_attributes(units: Forecast::Input::DEFAULT_UNITS, days: Forecast::Input::DEFAULT_DAYS)
+            )
+          end
         end
       end
-    end
 
-    context "when the units and days are not given" do
-      let(:params) { { full_address: address_input.full_address } }
+      response "400", "invalid parameters" do
+        schema "$ref" => "#/components/schemas/error"
 
-      it "fetches the forecast with the default units and days" do
-        get_forecast
+        context "when the address is missing" do
+          let(:full_address) { nil }
+          let(:units) { "fahrenheit" }
+          let(:days) { 2 }
 
-        expect(Forecast::CachedFetcher).to have_received(:call).with(
-          address_output: address_output,
-          forecast_input: having_attributes(units: Forecast::Input::DEFAULT_UNITS, days: Forecast::Input::DEFAULT_DAYS)
-        )
+          run_test! "responds with bad request without looking up the address" do
+            expect(response.parsed_body).to eq("error" => "Full address is required")
+            expect(Address::CachedFetcher).not_to have_received(:call)
+          end
+        end
+
+        context "when the units are invalid" do
+          let(:full_address) { address_input.full_address }
+          let(:units) { "kelvin" }
+
+          run_test! "responds with bad request without looking up the address" do
+            expect(response.parsed_body).to eq("error" => "Units must be one of: fahrenheit, celsius")
+            expect(Address::CachedFetcher).not_to have_received(:call)
+          end
+        end
       end
-    end
 
-    context "when the address is missing" do
-      let(:params) { { units: "fahrenheit", days: 2 } }
+      response "422", "no address with a zip code was found" do
+        schema "$ref" => "#/components/schemas/error"
 
-      it "responds with bad request without looking up the address" do
-        get_forecast
+        let(:full_address) { address_input.full_address }
 
-        expect(response).to have_http_status(:bad_request)
-        expect(response.parsed_body).to eq("error" => "Full address is required")
-        expect(Address::CachedFetcher).not_to have_received(:call)
+        before { allow(Address::CachedFetcher).to receive(:call).and_return([]) }
+
+        run_test! "explains that the address could not be found without fetching a forecast" do
+          expect(response.parsed_body).to eq("error" => "Could not find a zip code for this address")
+          expect(Forecast::CachedFetcher).not_to have_received(:call)
+        end
       end
-    end
 
-    context "when the units are invalid" do
-      let(:params) { { full_address: address_input.full_address, units: "kelvin" } }
+      response "502", "address lookup or weather service failed" do
+        schema "$ref" => "#/components/schemas/error"
 
-      it "responds with bad request without looking up the address" do
-        get_forecast
+        let(:full_address) { address_input.full_address }
 
-        expect(response).to have_http_status(:bad_request)
-        expect(response.parsed_body).to eq("error" => "Units must be one of: fahrenheit, celsius")
-        expect(Address::CachedFetcher).not_to have_received(:call)
+        before { allow(Forecast::CachedFetcher).to receive(:call).and_raise(Forecast::Fetcher::ServiceError, "Weather service timed out, please try again") }
+
+        run_test! "explains the failure" do
+          expect(response.parsed_body).to eq("error" => "Weather service timed out, please try again")
+        end
       end
     end
   end
