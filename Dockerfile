@@ -2,9 +2,14 @@ FROM docker.io/library/ruby:4.0.7
 
 WORKDIR /rails
 
+ENV RAILS_ENV=production \
+    BUNDLE_WITHOUT=development:test
+
 COPY Gemfile Gemfile.lock ./
-RUN bundle install && gem install foreman
+RUN bundle install
 
-ENV BINDING=0.0.0.0
+COPY . .
+RUN SECRET_KEY_BASE_DUMMY=1 bin/rails assets:precompile
 
-CMD ["sh", "-c", "rm -f tmp/pids/server.pid && bin/rails db:prepare && bin/dev"]
+EXPOSE 3000
+CMD ["sh", "-c", "bin/rails db:prepare && bin/rails server"]

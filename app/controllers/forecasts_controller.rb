@@ -21,8 +21,8 @@ class ForecastsController < ApplicationController
 
   private
 
-  def forecast_params
-    params.permit(:units, :days).compact_blank
+  def permitted_params
+    params.permit(:full_address, :units, :days)
   end
 
   def validated_address_input
@@ -30,7 +30,7 @@ class ForecastsController < ApplicationController
   end
 
   def validated_forecast_input
-    Forecast::Input.new(forecast_params).tap(&:validate!)
+    Forecast::Input.new(permitted_params.except(:full_address).compact_blank).tap(&:validate!)
   end
 
   def render_error(message, status)
