@@ -66,5 +66,51 @@ RSpec.describe "Addresses API v1 integration", type: :request do
         )
       end
     end
+
+    context "when Nominatim finds nothing" do
+      before { nominatim_stub.to_return(status: 200, body: "[]") }
+
+      it "returns an empty list" do
+        get_addresses
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to eq("addresses" => [])
+      end
+    end
+
+    context "when Nominatim fails" do
+      context "because it limits the number of requests" do
+        before { nominatim_stub.to_return(status: 429, body: "Too Many Requests") }
+
+        it "responds with bad gateway explaining the rate limit" do
+          get_addresses
+
+          expect(response).to have_http_status(:bad_gateway)
+          expect(response.parsed_body).to eq("error" => "Address lookup rate limit reached, please try again shortly")
+        end
+      end
+
+      context "because it is unavailable" do
+        before { nominatim_stub.to_return(status: 503, body: "Service Unavailable") }
+
+        it "responds with bad gateway explaining the failure" do
+          get_addresses
+
+          expect(response).to have_http_status(:bad_gateway)
+          expect(response.parsed_body).to eq("error" => "Could not reach the address lookup service")
+        end
+      end
+
+      context "because it responds with something that is not JSON" do
+        before { nominatim_stub.to_return(status: 200, body: "<html>Access blocked</html>") }
+
+        it "responds with bad gateway explaining the failure" do
+          get_addresses
+
+          expect(response).to have_http_status(:bad_gateway)
+          expect(response.parsed_body).to eq("error" => "Could not reach the address lookup service")
+        end
+      end
+    end
   end
 end

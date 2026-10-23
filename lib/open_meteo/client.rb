@@ -3,6 +3,7 @@ require "net/http"
 module OpenMeteo
   class Error < StandardError; end
   class TimeoutError < Error; end
+  class RateLimitError < Error; end
 
   class Client
     BASE_URL = "https://api.open-meteo.com/v1/forecast"
@@ -23,6 +24,7 @@ module OpenMeteo
       )
 
       response = get(uri)
+      raise RateLimitError, "Open-Meteo rate limit reached" if response.is_a?(Net::HTTPTooManyRequests)
       raise Error, "Open-Meteo responded with status #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
       body = JSON.parse(response.body)

@@ -15,6 +15,8 @@ module Forecast
         current_temperature: response.fetch("current").fetch("temperature_2m"),
         daily_temperatures: daily_temperatures(response.fetch("daily"))
       )
+    rescue OpenMeteo::RateLimitError
+      raise ServiceError, "Weather service rate limit reached, please try again shortly"
     rescue OpenMeteo::TimeoutError
       raise ServiceError, "Weather service timed out, please try again"
     rescue OpenMeteo::Error, KeyError

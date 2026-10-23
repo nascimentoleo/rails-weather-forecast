@@ -125,6 +125,17 @@ RSpec.describe "Forecasts API v1 integration", type: :request do
         end
       end
 
+      context "because it limits the number of requests" do
+        before { open_meteo_stub.to_return(status: 429, body: "Too Many Requests") }
+
+        it "responds with bad gateway explaining the rate limit" do
+          get_forecast
+
+          expect(response).to have_http_status(:bad_gateway)
+          expect(response.parsed_body).to eq("error" => "Weather service rate limit reached, please try again shortly")
+        end
+      end
+
       context "because it responds with something that is not JSON" do
         before { open_meteo_stub.to_return(status: 200, body: "<html>Service down</html>") }
 
