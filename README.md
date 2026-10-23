@@ -101,7 +101,7 @@ flowchart LR
 2. **Weather lookup.** The forecast for that zip code is fetched from Open-Meteo, using the address's coordinates and the chosen units and days.
 3. **Response.** The result is shown on the web page or returned as JSON, with a flag telling whether the address and the forecast came from the cache.
 
-Each step is cached for 30 minutes, so repeated searches don't call the external services again.
+Each step is cached for 30 minutes, so repeated searches don't call the external services again. The cache settings live in `config.cache_options` (`config/application.rb`).
 
 ## Tests and checks
 
@@ -118,12 +118,15 @@ RAILS_ENV=test bin/rails rswag:specs:swaggerize   # regenerate swagger/v1/swagge
 
 ## Trade-offs
 
-- **Nominatim and Open-Meteo, because they need no API keys.** There's nothing to configure: clone, set up, and use. The cost is that both are free public services with no SLA. Nominatim allows about [1 request per second](https://operations.osmfoundation.org/policies/nominatim/) and requires a User-Agent, and Open-Meteo is [free for non-commercial use](https://open-meteo.com/en/terms).
-- **No application database.** The app only stores its cache: requests and results are plain Ruby objects, not database records, so there are no tables or migrations. The only exception is production's cache database, explained next.
-- **Solid Cache instead of Redis.** Development caches in memory. Production uses Rails' Solid Cache, which keeps cache entries in a SQLite file. That means one less service to install, run and pay for, and one less dependency to maintain. It's slower than Redis's in-memory store and, on SQLite, doesn't suit several servers sharing one cache, which is fine at this scale.
-- **The forecast is cached per zip code.** The address is converted to a zip code first, and the forecast is cached by zip, units and days. Two addresses in the same zip share one forecast.
-- **US only.** Since the forecast is cached by zip code, including more countries would make zip codes overlap: for example, 75001 is both Addison, Texas and Paris, France, so both would share one cache entry. This is why the app only searches US addresses. Caching by coordinates instead would remove the overlap, but every address in the same zip code has different coordinates, so each one would become its own cache entry instead of one entry per zip code.
-- **Open-Meteo limitations.** Units are Celsius or Fahrenheit only (no Kelvin), and the forecast covers 1 to 16 days. Each units and days combination is a separate cache entry, so more options mean fewer cache hits.
+- **Free services vs. rate limits:** Addresses come from Nominatim and weather from Open-Meteo because neither needs an account or API key, so anyone can run the project right after downloading it. The downside: they're free public services with no uptime guarantee, and Nominatim accepts only about [one request per second](https://operations.osmfoundation.org/policies/nominatim/), so when many people search different addresses at the same moment, some of them get an error asking them to try again. In a real production setup we would switch the address provider, and that's easy: it only takes a change in the geocoder configuration. Options:
+  - [LocationIQ](https://locationiq.com): runs Nominatim with higher limits. Only a settings change and an API key.
+  - [Self-hosted Nominatim](https://nominatim.org/release-docs/latest/admin/Installation/): no limit at all. Only a settings change, but it needs its own server.
+  - [Google Maps](https://developers.google.com/maps/documentation/geocoding/overview): a settings change, an API key and small adjustments in one file.
+- **Rails' built-in cache instead of Redis:** Redis is the usual tool for caching, but it's one more service to install, run and pay for. Rails' own cache (Solid Cache) keeps results in a simple file instead. The downside: it's slower than Redis, and it only works when the app runs on a single server.
+- **One forecast per zip code:** Forecasts are saved by zip code, so everyone searching an address in the same zip code gets the same forecast. This means far fewer calls to the weather service, but the forecast describes the zip code area, not the exact address.
+- **US addresses only:** Because forecasts are saved by zip code, mixing countries would cause mix-ups: 75001 is both a zip code in Addison, Texas and a postal code in Paris, France, so one could get the other's weather. Saving forecasts by exact location instead would avoid that, but then every address would need its own saved forecast and the cache would rarely be reused.
+- **Concurrency vs. Nominatim's limit:** In production, the app runs one process per CPU core, each handling 5 requests at the same time, and they all share one cache, so repeated searches never reach the outside services twice. New address searches, however, can't go faster than Nominatim's one per second, so extra concurrency mainly helps repeated searches and forecasts.
+- **Weather service limits:** Open-Meteo offers only Celsius or Fahrenheit (no Kelvin) and up to 16 days ahead. Each combination of units and days is saved separately, so the more combinations people use, the less often a saved forecast is reused.
 
 ## License
 

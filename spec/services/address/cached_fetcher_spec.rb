@@ -25,6 +25,14 @@ RSpec.describe Address::CachedFetcher do
         expect(fetch_cached_addresses).to all(have_attributes(from_cache: false))
         expect(Address::Fetcher).to have_received(:call).with(address_input).once
       end
+
+      it "caches them with the configured expiration and protection against simultaneous refreshes" do
+        allow(Rails.cache).to receive(:fetch).and_call_original
+
+        fetch_cached_addresses
+
+        expect(Rails.cache).to have_received(:fetch).with(anything, hash_including(**Rails.configuration.cache_options))
+      end
     end
 
     context "when a search was cached before" do
@@ -43,7 +51,7 @@ RSpec.describe Address::CachedFetcher do
 
         context "and the expiration time has not passed yet" do
           it "returns the cached addresses" do
-            travel(described_class::EXPIRES_IN - 1.second) do
+            travel(Rails.configuration.cache_options[:expires_in] - 1.second) do
               expect(fetch_cached_addresses).to all(have_attributes(from_cache: true))
             end
           end
@@ -51,7 +59,7 @@ RSpec.describe Address::CachedFetcher do
 
         context "and the expiration time has passed" do
           it "fetches the addresses again" do
-            travel(described_class::EXPIRES_IN + 1.second) do
+            travel(Rails.configuration.cache_options[:expires_in] + 1.second) do
               expect(fetch_cached_addresses).to all(have_attributes(from_cache: false))
             end
 

@@ -24,6 +24,14 @@ RSpec.describe Forecast::CachedFetcher do
         expect(fetch_cached_forecast).to have_attributes(current_temperature: forecast_output.current_temperature, from_cache: false)
         expect(Forecast::Fetcher).to have_received(:call).with(address: address_output, forecast_input: forecast_input).once
       end
+
+      it "caches it with the configured expiration and protection against simultaneous refreshes" do
+        allow(Rails.cache).to receive(:fetch).and_call_original
+
+        fetch_cached_forecast
+
+        expect(Rails.cache).to have_received(:fetch).with(anything, hash_including(**Rails.configuration.cache_options))
+      end
     end
 
     context "when a forecast was cached before" do
@@ -40,7 +48,7 @@ RSpec.describe Forecast::CachedFetcher do
 
         context "and the expiration time has not passed yet" do
           it "returns the cached forecast" do
-            travel(described_class::EXPIRES_IN - 1.second) do
+            travel(Rails.configuration.cache_options[:expires_in] - 1.second) do
               expect(fetch_cached_forecast).to have_attributes(from_cache: true)
             end
           end
@@ -48,7 +56,7 @@ RSpec.describe Forecast::CachedFetcher do
 
         context "and the expiration time has passed" do
           it "fetches a new forecast" do
-            travel(described_class::EXPIRES_IN + 1.second) do
+            travel(Rails.configuration.cache_options[:expires_in] + 1.second) do
               expect(fetch_cached_forecast).to have_attributes(from_cache: false)
             end
           end

@@ -16,6 +16,8 @@ module RailsWeatherForecast
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    config.cache_options = { expires_in: 30.minutes, race_condition_ttl: 10.seconds }
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
